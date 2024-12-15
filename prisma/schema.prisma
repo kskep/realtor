@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id            Int         @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String      @unique
+  phone         String?
+  address       String?
+  city          String?
+  country       String?
+  properties    Property[]  // Relation to properties
+  documents     Document[]  // Client documents
+  notes         Note[]      // Client notes
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Property {
+  id            Int         @id @default(autoincrement())
+  title         String
+  description   String      @db.Text
+  price         Decimal     @db.Decimal(10, 2)
+  location      String
+  type          String      // apartment, house, land, etc.
+  status        String      // available, sold, rented
+  size          Float?      // in square meters
+  bedrooms      Int?
+  bathrooms     Int?
+  features      Json?       // flexible property features
+  images        Json?       // array of image URLs
+  documents     Document[]  // Property documents
+  clientId      Int?        // Optional because property might not have a client yet
+  client        Client?     @relation(fields: [clientId], references: [id])
+  notes         Note[]      // Property notes
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Document {
+  id          Int       @id @default(autoincrement())
+  title       String
+  type        String    // contract, deed, invoice, etc.
+  url         String    // document storage URL
+  propertyId  Int?
+  property    Property? @relation(fields: [propertyId], references: [id])
+  clientId    Int?
+  client      Client?   @relation(fields: [clientId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Note {
+  id          Int       @id @default(autoincrement())
+  content     String    @db.Text
+  propertyId  Int?
+  property    Property? @relation(fields: [propertyId], references: [id])
+  clientId    Int?
+  client      Client?   @relation(fields: [clientId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
